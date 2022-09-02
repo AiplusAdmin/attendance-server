@@ -1441,68 +1441,72 @@ router.post('/addroomexample', (req, res) => {
 router.post('/addtopicsexample',(req,res) => {
 	try{
 		var workbook = xlsx.readFile(path.join(__dirname,'../primer.xlsx'),{cellDates: true});
-		var sheetName = workbook.SheetNames[0];
-		var worksheet = workbook.Sheets[sheetName];
-		var data = xlsx.utils.sheet_to_json(worksheet);
-		data.map(async function(record){
-			try{
-				var subjectName = record['Предмет'].trim();
-
-				var subject = await Subjects.findOne({
-					where:{
-						Name: subjectName
-					}
-				});
-
-				var subjectLevel = record['Уровни']?record['Уровни'].trim():'';
-
-				var level = await Levels.findOne({
-					where:{
-						Name: subjectLevel
-					}
-				});
-
-				if(subject){
-					var Class = record['Класс']? record['Класс'].toString(): null;
-					var Name = record['Тема'];
-					var SubjectId = subject.Id;
-					var Branch = record['Отделение'].trim();
-					var LevelId = level ? level.Id : null;
-					var Priority = record['Номер'];
-					var topic = await Topics.findOne({
-						attributes: ['Id','Class','Name','SubjectId','Branch','LevelId'],
+		var n = workbook.SheetNames.length;
+		for(var i = 0; i < n; i ++){
+			var sheetName = workbook.SheetNames[i];
+			var worksheet = workbook.Sheets[sheetName];
+			var data = xlsx.utils.sheet_to_json(worksheet);
+			data.map(async function(record){
+				try{
+					var subjectName = record['Предмет'].trim();
+	
+					var subject = await Subjects.findOne({
 						where:{
-							Class,
-							Name,
-							SubjectId,
-							Branch,
-							LevelId
+							Name: subjectName
 						}
 					});
-					
-					if(topic === null){
-						await Topics.create({
-							Class,
-							Name,
-							SubjectId,
-							Branch,
-							LevelId,
-							Priority,
-						},{
-							fields: ['Class','Name','SubjectId','Branch','LevelId','Priority'],
+	
+					var subjectLevel = record['Уровни']?record['Уровни'].trim():'';
+	
+					var level = await Levels.findOne({
+						where:{
+							Name: subjectLevel
+						}
+					});
+	
+					if(subject){
+						var Class = record['Класс']? record['Класс'].toString(): null;
+						var Name = record['Тема'];
+						var SubjectId = subject.Id;
+						var Branch = record['Отделение'].trim();
+						var LevelId = level ? level.Id : null;
+						var Priority = record['Номер'];
+						var topic = await Topics.findOne({
+							attributes: ['Id','Class','Name','SubjectId','Branch','LevelId'],
+							where:{
+								Class,
+								Name,
+								SubjectId,
+								Branch,
+								LevelId
+							}
 						});
-					} else {
-						topic.update({
-							Priority: Priority,
-							Branch: Branch
-						});
+						
+						if(topic === null){
+							await Topics.create({
+								Class,
+								Name,
+								SubjectId,
+								Branch,
+								LevelId,
+								Priority,
+							},{
+								fields: ['Class','Name','SubjectId','Branch','LevelId','Priority'],
+							});
+						} else {
+							topic.update({
+								Priority: Priority,
+								Branch: Branch
+							});
+						}
 					}
+					
+				}catch(error){
+					console.log(error);
 				}
-				
-			}catch(error){
-				console.log(error);
-			}
-		});
+			});
+		}
+		
 
 		res.send('ok');
 	}catch(err){
