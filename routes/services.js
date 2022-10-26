@@ -1879,7 +1879,7 @@ router.get('/getregister',verifyToken,async (req, res) => {
 
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
 		reg."SubmitDay", reg."SubmitTime",reg."Online",
-		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine"
+		SUM(CASE WHEN subregAll."Lesson" > 0 THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine"
 		FROM public."Registers" as reg
 		LEFT JOIN public."SubRegisters" as subregAll ON reg."Id" = subregAll."RegisterId"
 		LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
@@ -1887,7 +1887,7 @@ router.get('/getregister',verifyToken,async (req, res) => {
 		GROUP BY reg."Id",sch."Name";`;
 
 		var registers = await sequelize.query(query,{
-			replacements:{dateFrom: dateFrom,dateTo: dateTo, pass:true, teacherId:req.query.teacherId},
+			replacements:{dateFrom: dateFrom,dateTo: dateTo, teacherId:req.query.teacherId},
 			type: QueryTypes.SELECT
 		});
 
