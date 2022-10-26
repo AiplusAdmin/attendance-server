@@ -29,35 +29,48 @@ async function setAibucks(students){
 
 						var response = await api.get('aiplusonline','GetStudents','clientId='+student.clientid,key.apikey);
                         var fieldValue = 0
-
+                        
                         if(response.data[0].ExtraFields){
                             response.data[0].ExtraFields.map(function(field){
                                 var name = field.Name.toLowerCase();
                                 var value = field.Value;
                                 if(name == 'сумма айбаксов'){
-                                    console.log(value,'aaaaaa')
                                     fieldValue+=parseInt(value);
                                 }
                             });
                         }
-                        console.log(fieldValue,'ssss')
-                        console.log(student.aibaks,'aadsdsdsds')
 
                         fieldValue+=parseInt(student.aibaks);
-
+                        var flag = false;
                         if(response.data[0].ExtraFields){
                             response.data[0].ExtraFields.map(function(field){
-                                var obj = {};
-                                obj.name = field.Name;
-                                obj.value = field.Value;
-                                extraFields.push(obj);
-                            });
+                                if(field.Name == 'Сумма Айбаксов'){
+                                    var obj = {};
+                                    obj.name = 'Сумма Айбаксов';
+                                    obj.value = fieldValue;
+                                    extraFields.push(obj);
+                                }else{
+                                    var obj = {};
+                                    obj.name = field.Name;
+                                    obj.value = field.Value;
+                                    extraFields.push(obj);  
+                                }
+                            }); 
+                        }
+                        extraFields.map(function(field){
+                            if(field.name == 'Сумма Айбаксов'){;
+                                flag = true;
+                            } 
+                        }); 
+                        console.log(flag)
+                        if(flag == false){
                             var obj = {};
-                            obj.name = 'сумма Айбаксов';
+                            obj.name = 'Сумма Айбаксов';
                             obj.value = fieldValue;
                             extraFields.push(obj);
                         }
-                
+                        
+                        console.log(extraFields,'fff')
                         var data = {};
                         data.studentClientId = student.clientid;
                         data.fields = extraFields;
