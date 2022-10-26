@@ -33,6 +33,7 @@ const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
+const aibucksHH = require('../scripts/aibucks');
 const hh = require('../scripts/hh');
 const hhn = require('../scripts/hhn');
 const hht = require('../scripts/hht');
@@ -725,6 +726,17 @@ router.post('/setattendence', async (req, res) => {
 						resolve(true);
 					}
 				});
+				new Promise(async (resolve) => {
+					try{
+						if(GroupId){
+						await aibucksHH(students);
+						resolve(true);
+						}
+					}catch(err){
+						console.log(err);
+						resolve(true);
+					}
+				});
 				new Promise(async (resolve) =>{
 					try{
 						if(group.change){
@@ -961,6 +973,17 @@ router.post('/setattendencet', async (req, res) => {
 						resolve(true);
 					}
 				});
+				new Promise(async (resolve) => {
+					try{
+						if(GroupId){
+						await aibucksHH(students);
+						resolve(true);
+						}
+					}catch(err){
+						console.log(err);
+						resolve(true);
+					}
+				});
 				new Promise(async (resolve) =>{
 					try{
 						if(group.change){
@@ -1168,6 +1191,17 @@ router.post('/setattendencen', async (req, res) => {
 					try{
 						await hhn(LessonDate,GroupId,students,newRegister,subject);
 						resolve(true);
+					}catch(err){
+						console.log(err);
+						resolve(true);
+					}
+				});
+				new Promise(async (resolve) => {
+					try{
+						if(GroupId){
+						await aibucksHH(students);
+						resolve(true);
+						}
 					}catch(err){
 						console.log(err);
 						resolve(true);
