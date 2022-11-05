@@ -597,39 +597,6 @@ router.post('/setattendence', async (req, res) => {
 		var subject = req.body.group.subject;
 		var HomeWorkComment = '';
 
-		splittedTimeZamena = Time.split('-');
-		timeStartZamena = new Date("01/01/1970" + " " + splittedTimeZamena[0]);		
-		timeEndZamena = new Date("01/01/1970" + " " + splittedTimeZamena[1]);		
-			
-			
-		var CheckRegistersAll = await Registers.findAll({
-			attributes: ['TeacherId','Time','LessonDate'],
-			where: {
-				TeacherId: TeacherId,
-				LessonDate: new Date(LessonDate)
-			}
-		});
-		
-		var count= Object.keys(CheckRegistersAll).length;
-		for (let i = 0; i < count; i++) {
-			TimeOfInst = CheckRegistersAll[i]["Time"];
-			splittedTime = TimeOfInst.split('-');
-			timeStart = new Date("01/01/1970" + " " + splittedTime[0]);		
-			timeEnd = new Date("01/01/1970" + " " + splittedTime[1]);
-			if ((timeStart < timeStartZamena && timeStart < timeEndZamena) && (timeEnd < timeStartZamena && timeEnd < timeEndZamena)){
-				continue
-			} else if(((timeStart > timeStartZamena && timeStart > timeEndZamena) && (timeEnd > timeStartZamena && timeEnd > timeEndZamena))){
-				continue
-			}else{
-				var result = "da";
-				res.json({
-					status: 440,
-					message: 'Вы уже заполнили другую группу'
-				});
-				break;
-			}		
-		}
-
 		var newRegister = await Registers.create({
 				Change,
 				LevelTest,
@@ -728,10 +695,8 @@ router.post('/setattendence', async (req, res) => {
 				});
 				new Promise(async (resolve) => {
 					try{
-						if(GroupId){
 						await aibucksHH(students);
 						resolve(true);
-						}
 					}catch(err){
 						console.log(err);
 						resolve(true);
@@ -914,9 +879,9 @@ router.post('/setattendencet', async (req, res) => {
 					obj.ClientId = student.clientid;
 					obj.FullName = student.name;
 					obj.Pass = student.attendence;
-					obj.Homework = student.attendence?student.homework:-1;
-					obj.Test = student.attendence?student.test:-1;
-					obj.Lesson = student.attendence?student.lesson:-1;
+					obj.Homework = student.homework;
+					obj.Test = student.test;
+					obj.Lesson = student.attendence?student.lesson:0;
 					obj.Comment = comment;
 					obj.Status = student.status;
 					obj.isWatched = student.iswatched ? student.iswatched:false;
@@ -1099,39 +1064,6 @@ router.post('/setattendencen', async (req, res) => {
 		var Aibucks = req.body.Aibucks?req.body.Aibucks:null;
 		var subject = req.body.theme;
 
-		splittedTimeZamena = Time.split('-');
-		timeStartZamena = new Date("01/01/1970" + " " + splittedTimeZamena[0]);		
-		timeEndZamena = new Date("01/01/1970" + " " + splittedTimeZamena[1]);		
-			
-			
-		var CheckRegistersAll = await Registers.findAll({
-			attributes: ['TeacherId','Time','LessonDate'],
-			where: {
-				TeacherId: TeacherId,
-				LessonDate: new Date(LessonDate)
-			}
-		});
-		
-		var count= Object.keys(CheckRegistersAll).length;
-		for (let i = 0; i < count; i++) {
-			TimeOfInst = CheckRegistersAll[i]["Time"];
-			splittedTime = TimeOfInst.split('-');
-			timeStart = new Date("01/01/1970" + " " + splittedTime[0]);		
-			timeEnd = new Date("01/01/1970" + " " + splittedTime[1]);
-			if ((timeStart < timeStartZamena && timeStart < timeEndZamena) && (timeEnd < timeStartZamena && timeEnd < timeEndZamena)){
-				continue
-			} else if(((timeStart > timeStartZamena && timeStart > timeEndZamena) && (timeEnd > timeStartZamena && timeEnd > timeEndZamena))){
-				continue
-			}else{
-				var result = "da";
-				res.json({
-					status: 440,
-					message: 'Вы уже заполнили другую группу'
-				});
-				break;
-			}		
-		}
-
 		var newRegister = await Registers.create({
 				Change,
 				LevelTest,
@@ -1198,10 +1130,8 @@ router.post('/setattendencen', async (req, res) => {
 				});
 				new Promise(async (resolve) => {
 					try{
-						if(GroupId){
 						await aibucksHH(students);
 						resolve(true);
-						}
 					}catch(err){
 						console.log(err);
 						resolve(true);

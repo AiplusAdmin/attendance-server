@@ -14,17 +14,13 @@ function sleep(ms){
 
 async function setAibucks(students){
 	try{
-
 		await sleep(1000);
-		var responses = [];
 		await students.reduce(async function(previousPromise,student){
-			var res = await previousPromise;
-			responses.push(res);
+			await previousPromise;
 			return new Promise(async function(resolve,reject){
 				try{
 					await sleep(10);
 					if(student.aibaks && student.clientid != -1 && !student.status && !student.delete){
-						console.log(student,'hahaha')
                         var extraFields = [];
 
 						var response = await api.get('aiplusonline','GetStudents','clientId='+student.clientid,key.apikey);
@@ -49,6 +45,7 @@ async function setAibucks(students){
                                     obj.name = 'Сумма Айбаксов';
                                     obj.value = fieldValue;
                                     extraFields.push(obj);
+                                    flag = true;
                                 }else{
                                     var obj = {};
                                     obj.name = field.Name;
@@ -57,20 +54,14 @@ async function setAibucks(students){
                                 }
                             }); 
                         }
-                        extraFields.map(function(field){
-                            if(field.name == 'Сумма Айбаксов'){;
-                                flag = true;
-                            } 
-                        }); 
-                        console.log(flag)
-                        if(flag == false){
+                      
+                        if(!flag){
                             var obj = {};
                             obj.name = 'Сумма Айбаксов';
                             obj.value = fieldValue;
                             extraFields.push(obj);
                         }
                         
-                        console.log(extraFields,'fff')
                         var data = {};
                         data.studentClientId = student.clientid;
                         data.fields = extraFields;
