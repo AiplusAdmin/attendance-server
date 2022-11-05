@@ -74,7 +74,7 @@ async function setPasses(data,groupId,students){
             st.Date = data;
             st.EdUnitId = groupId;
             st.StudentClientId = student.clientid;
-            st.Pass = !student.attendence;
+            st.Pass = false;
             st.Payable = false;
             params.push(st);
         }
@@ -102,7 +102,7 @@ async function setGroupResult(date,groupId,students,register,topic){
 			return new Promise(async function(resolve,reject){
 				try{
 					await sleep(10);
-					if(student.attendence && student.clientid != -1 && !student.status && !student.delete){
+					if(student.clientid != -1 && !student.status && !student.delete){
 						student.topic = topic;
 						var comment = '';
 						var data = new Object();
@@ -125,7 +125,7 @@ async function setGroupResult(date,groupId,students,register,topic){
 						skills.push(skill);
 						skill = new Object();
 						skill.skillId = process.env.RANG_SKILL_ID; // Ранг
-						skill.score = student.lesson;
+						skill.score = student.attendence ? student.lesson:0;
 						skills.push(skill);
                         skill = new Object();
 						skill.skillId = process.env.TOPIC_SKILL_ID; // тема

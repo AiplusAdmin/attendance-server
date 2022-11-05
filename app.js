@@ -1,4 +1,4 @@
-require('dotenv').config({path: __dirname + '/online.env'});
+require('dotenv').config({path: __dirname + '/.env'});
 require('./config/passport-config');
 
 
