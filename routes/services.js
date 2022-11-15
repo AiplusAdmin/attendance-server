@@ -3023,13 +3023,12 @@ router.post('/deleteextrateacher', async(req, res) => {
 		var dateFrom = new Date(req.body.dateFrom);
 		var dateTo = new Date(req.body.dateTo);
 		
-		console.log(dateFrom,dateTo);
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
 		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",reg."Online",top."Name" as "Topic",
 		CASE 
 			WHEN reg."GroupName" like '%RO%' THEN 'RO'
 			WHEN reg."GroupName" like '%KO%' THEN 'KO'
-		END AS "Branch", concat(teach."LastName",' ',teach."FirstName") as "FullName", concat(subteach."LastName",' ',subteach."FirstName") as "SubFullName",
+		END AS "Branch", reg."TeacherId", concat(teach."LastName",' ',teach."FirstName") as "FullName", concat(subteach."LastName",' ',subteach."FirstName") as "SubFullName",
 		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine",teach."Rate60",teach."Rate90"
 		FROM public."Registers" as reg
 		LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
@@ -3040,6 +3039,7 @@ router.post('/deleteextrateacher', async(req, res) => {
 		LEFT JOIN public."Topics" as top ON top."Id" = reg."TopicId"
 		WHERE reg."LessonDate" BETWEEN :dateFrom AND :dateTo
 		GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room",subteach."LastName",subteach."FirstName",top."Name",teach."Rate60",teach."Rate90";`;
+		
 		var registers = await sequelize.query(query,{
 			replacements:{dateFrom: dateFrom,dateTo: dateTo, pass:true},
 			type: QueryTypes.SELECT
@@ -3049,11 +3049,90 @@ router.post('/deleteextrateacher', async(req, res) => {
 			var subject = support.subjectName(register.GroupName);
 			register.Subject = subject;
 		});
-
-		console.log(registers.length);
+		
+		var teacherIdList = [...new Set(registers.map(register=>register.TeacherId))];
+		var salaryList = [];
+		var problems = [];
+		
+		teacherIdList.map(function(teacherId){
+			var registerList = registers.filter(register => register.TeacherId == teacherId);
+			var changeList = registers.filter(register => register.SubFullName == registerList[0].FullName);
+			var result = support.CalculateDays(registerList);
+			var subjectTeacher = '';
+			var department = '';
+			var arr = [];
+			arr[0] = teacherId;
+			arr[1] = registerList[0].FullName;
+			
+			var subjectList = [...new Set(registerList.map(register=>register.Subject))];
+			if(subjectList.length == 1){
+				subjectTeacher = subjectList[0];
+			}else{
+				var maxim = 0;
+				subjectList.map(function(subject){
+					var filtered = registerList.filter(register => register.Subject == subject);
+					if(maxim < filtered.length){
+						max = filtered.length;
+						subjectTeacher = subject;
+					}						
+				});
+			}
+			
+			switch(subjectTeacher){
+				case 'математика':
+					department = 'математика';
+					break;
+				case 'логика':
+					department = 'математика';
+					break;
+				case 'геометрия':
+					department = 'математика';
+					break;
+				case 'алгебра':
+					department = 'математика';
+					break;
+				case 'мат. грамотность':
+					department = 'математика';
+					break;
+				case 'казахский язык':
+					department = 'казахский язык';
+					break;
+				case 'русский язык':
+					department = 'русский язык';
+					break;
+				case 'английский язык':
+					department = 'английский язык';
+					break;
+				case 'началка':
+					department = 'началка';
+					break;
+				default:
+					department = 'ЕНТ';
+					break;
+			}
+			
+			arr[2] = department;
+			arr[3] = registerList[0].Rate60;
+			arr[4] = registerList[0].Rate90;
+			arr[5] = Number(result.minutes/60).toFixed(2);
+			arr[6] = result.halflesson;
+			arr[7] = result.hour;
+			arr[8] = result.lesson;
+			arr[9] = result.fines;
+			arr[10] = changeList.length;
+			salaryList.push(arr);
+			problems = problems.concat(result.problems);
+			
+		});
+		var header = ['TeacherId','ФИО тренера','Кафедра','Ставка за 60','Ставка за 90','Общее количество уроков по 60 минутной системе','Количество уроков по 45','Количество уроков по 60','Количество уроков по 90','Опоздания (минут)','Количество замен'];
+		salaryList.unshift(header);
 		var newWB = xlsx.utils.book_new();
-		var newWS = xlsx.utils.json_to_sheet(registers);
-		xlsx.utils.book_append_sheet(newWB,newWS,'sheet');
+		var salary = xlsx.utils.aoa_to_sheet(salaryList);
+		var journal = xlsx.utils.json_to_sheet(registers);
+		var problemSheet = xlsx.utils.json_to_sheet(problems);
+		xlsx.utils.book_append_sheet(newWB,salary,'salary');
+		xlsx.utils.book_append_sheet(newWB,journal,'journal');
+		xlsx.utils.book_append_sheet(newWB,problemSheet,'problem');
 		xlsx.writeFile(newWB,'journals.xlsx');
 		res.send({status: 200, data: []});
 	}catch(error){
