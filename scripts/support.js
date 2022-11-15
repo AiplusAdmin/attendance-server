@@ -760,6 +760,80 @@ function compareReportDate(a, b){
       return 0;
 }
 
+function CalculateDays(registers) {
+    var lesson = 0;
+    var halflesson = 0;
+    var hour = 0;
+    var problems = [];
+    var hash = new Array();
+      var fines = 0;
+      registers.map(function(register) {
+          if(register.Fine){
+              fines+=parseInt(register.Fine);
+          }
+        if (!(register.LessonDate in hash)) {
+          hash[register.LessonDate] = new Array();
+          hash[register.LessonDate].push(register.Time);
+          var arrTime = register.Time.split("-");
+          var arrStart = arrTime[0].split(":");
+          var arrEnd = arrTime[1].split(":");
+          var time =
+            (arrEnd[0] - arrStart[0]) * 60 + (arrEnd[1] - arrStart[1]);
+
+          if (time == 90) {
+            if (register.Passed == 0) lesson = lesson + 0.5;
+            else lesson = lesson + 1;
+          } else if (time == 50 || time == 55 || time == 60) {
+            if (register.Passed == 0) hour = hour + 0.5;
+            else hour = hour + 1;
+          } else if (time == 45 || time == 40){
+            if (register.Passed == 0) halflesson = halflesson + 0.5;
+            else halflesson = halflesson + 1;
+          }else if (time == 120) {
+            if (register.Passed == 0) hour = hour + 1;
+            else hour = hour + 2;
+          }else{
+              problems.push(register);
+          }
+        } else {
+          if (!hash[register.LessonDate].includes(register.Time)) {
+            hash[register.LessonDate].push(register.Time);
+            arrTime = register.Time.split("-");
+            arrStart = arrTime[0].split(":");
+            arrEnd = arrTime[1].split(":");
+            time = (arrEnd[0] - arrStart[0]) * 60 + (arrEnd[1] - arrStart[1]);
+
+            if (time == 90) {
+              if (register.Passed == 0) lesson = lesson + 0.5;
+              else lesson = lesson + 1;
+            } else if (time == 50 || time == 55 || time == 60) {
+              if (register.Passed == 0) hour = hour + 0.5;
+              else hour = hour + 1;
+            } else if (time == 45 || time == 40){
+              if (register.Passed == 0) halflesson = halflesson + 0.5;
+              else halflesson = halflesson + 1;
+            }else if (time == 120) {
+              if (register.Passed == 0) hour = hour + 1;
+              else hour = hour + 2;
+            }else{
+              problems.push(register);
+            }
+          }
+        }
+      });
+      
+      return {
+              lesson: lesson,
+              hour: hour,
+              halflesson : halflesson,
+              minutes: lesson*90 + hour*60 + halflesson*45,
+              problems: problems,
+              fines: fines,
+      };
+  }
+
+
+
 module.exports = {
 	subjectName,
 	getBranch,
@@ -773,5 +847,6 @@ module.exports = {
 	getWeekDay,
     getTimeInMinutes,
     compareTimes,
-    compareReportDate
+    compareReportDate,
+    CalculateDays
 }
