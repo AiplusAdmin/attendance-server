@@ -1,6 +1,6 @@
 
 const object = {
-    category: 3,
+    category: 2,
     test : [
     {
         subject: 'Математика',
@@ -8,31 +8,31 @@ const object = {
         blocks:[
             {
                 block: '4.1',
-                id: 15
+                id: 2
             },
             {
                 block: '4.2',
-                id: 20
+                id: 3
             },
             {
                 block: '5.1',
-                id: 21
+                id: 4
             },
             {
                 block: '5.2',
-                id: 22
+                id: 5
             },
             {
                 block: '5',
-                id: 23
+                id: 6
             },
             {
                 block: '6.1',
-                id: 24
+                id: 7
             },
             {
                 block: '6.2',
-                id: 25
+                id: 8
             }
         ]
     },
@@ -42,19 +42,19 @@ const object = {
         blocks:[
             {
                 block: '1',
-                id: 19
+                id: 9
             },
             {
                 block: '2',
-                id: 26
+                id: 10
             },
             {
                 block: '3',
-                id: 27
+                id: 11
             },
             {
                 block: '4',
-                id: 28
+                id: 12
             }
         ]
     },
@@ -63,16 +63,32 @@ const object = {
         subjectId: 2,
         blocks:[
             {
-                block: '4',
-                id: 16
+                block: '4.1',
+                id: 44
+            },
+            {
+                block: '4.2',
+                id: 45
             },
             {
                 block: '5',
-                id: 29
+                id: 46
             },
             {
-                block: '6',
-                id: 30
+                block: '5.1',
+                id: 47
+            },
+            {
+                block: '5.2',
+                id: 48
+            },
+            {
+                block: '6.1',
+                id: 49
+            },
+            {
+                block: '6.2',
+                id: 50
             }
         ]
     },
@@ -82,15 +98,15 @@ const object = {
         blocks:[
             {
                 block: '4',
-                id: 17
+                id: 13
             },
             {
                 block: '5',
-                id: 31
+                id: 13
             },
             {
                 block: '6',
-                id: 32
+                id: 13
             }
         ]
     },
@@ -100,15 +116,15 @@ const object = {
         blocks:[
             {
                 block: '4',
-                id: 18
+                id: 14
             },
             {
                 block: '5',
-                id: 33
+                id: 14
             },
             {
                 block: '6',
-                id: 34
+                id: 14
             }
         ]
     }

@@ -1716,85 +1716,44 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 			var s = arr1.join(' ');
 			
 			var middlename = s ? '%'+s+'%':'%%';
-			var klass = support.getClass(req.query.group);
-			var kl = klass.split('-');
 			var query = [];
 			
-			if(kl.length > 1){
-				if(arr.length == 0){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{class1:kl[0],class2:kl[1]},
-						type: QueryTypes.SELECT
-					});
-					res.send({status: 200, data: students});
-				} else if(arr.length  == 1){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE ("LastName" like :lastname or "FirstName" like :lastname) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{lastname: lastname,class1:kl[0],class2:kl[1]},
-						type: QueryTypes.SELECT
-					});
-					res.send({status: 200, data: students});
-				} else if(arr.length == 2){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE (("LastName" like :lastname AND "FirstName" like :firstname) OR ("LastName" like :firstname AND "FirstName" like :lastname)) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{firstname: firstname,lastname:lastname,class1:kl[0],class2:kl[1]},
-						type: QueryTypes.SELECT
-					});
-					res.send({status: 200, data: students});
-				}else {
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE ("LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class1:kl[0],class2:kl[1]},
-						type: QueryTypes.SELECT
-					});
-					res.send({status: 200, data: students});
-				}
+			if(arr.length == 0){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" LIMIT 10;`;
+				
+				students = await sequelize.query(query,{
+					type: QueryTypes.SELECT
+				});
+
+				res.send({status: 200, data: students});
+			} else if(arr.length  == 1){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE (LOWER("LastName") like :lastname OR LOWER("FirstName") like :lastname) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{lastname: lastname},
+					type: QueryTypes.SELECT
+				});
+
+				res.send({status: 200, data: students});
+			} else if(arr.length == 2){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE ((LOWER("LastName") like :lastname AND LOWER("FirstName") like :firstname) OR (LOWER("LastName") like :firstname AND LOWER("FirstName") like :lastname)) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname},
+					type: QueryTypes.SELECT
+				});
+
+				res.send({status: 200, data: students});
 			}else {
-				var minus = parseInt(kl[0]) -1;
-				var plus = parseInt(kl[0]) + 1;
-				kl.push(minus.toString());
-				kl.push(plus.toString());
-				if(arr.length == 0){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE ("Class" in (:class)) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{class:kl},
-						type: QueryTypes.SELECT
-					});
-					res.send({status: 200, data: students});
-				} else if(arr.length  == 1){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE (LOWER("LastName") like :lastname OR LOWER("FirstName") like :lastname) AND ("Class" in (:class)) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{lastname: lastname,class:kl},
-						type: QueryTypes.SELECT
-					});
-	
-					res.send({status: 200, data: students});
-				} else if(arr.length == 2){
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE ((LOWER("LastName") like :lastname AND LOWER("FirstName") like :firstname) OR (LOWER("LastName") like :firstname AND LOWER("FirstName") like :lastname)) AND ("Class" in (:class)) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{firstname: firstname,lastname:lastname,class:kl},
-						type: QueryTypes.SELECT
-					});
-	
-					res.send({status: 200, data: students});
-				}else {
-					query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-					FROM "Students" WHERE  ("LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename) AND ("Class" in (:class)) LIMIT 10;`;
-					students = await sequelize.query(query,{
-						replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class:kl},
-						type: QueryTypes.SELECT
-					});
-	
-					res.send({status: 200, data: students});
-				}
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE  ("LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname,middlename:middlename},
+					type: QueryTypes.SELECT
+				});
+
+				res.send({status: 200, data: students});
 			}
 		}
 		
@@ -2617,13 +2576,16 @@ router.post('/hhtoonline', async(req,res) => {
 									keys.map(function(studid){
 										var student = students.get(studid);
 										var subreg = {};
+										var maxSrez = null;
+										var aibaks = 0;
 										subreg.ClientId = studid;
 										subreg.FullName = student.StudentName;
 										subreg.RegisterId = register.Id;
 										subreg.Pass = true;
 										subreg.Status = false;
 										subreg.isWatched = false;
-										subreg.Aibucks = 0;
+										
+
 										student.Skills.map(function(skill){
 											if(skill.SkillName == 'Срез'){
 												subreg.Test = skill.Score;
@@ -2631,13 +2593,24 @@ router.post('/hhtoonline', async(req,res) => {
 												subreg.Homework = skill.Score;
 											}else if(skill.SkillName == 'Ранг'){
 												subreg.Lesson = skill.Score;
+											}else if(skill.SkillName == 'Срез Общее'){
+												maxSrez = skill.Score;
 											}
 										});
+
+										if(maxSrez && parseInt(maxSrez) > 0 && subreg.Test <= 100)
+											aibaks += parseInt(Number((parseInt(subreg.Test)/parseInt(maxSrez))*30).toFixed(0));
+										if (parseInt(subreg.Homework) <= 20)
+											aibaks += parseInt(Number((parseInt(subreg.Homework)/20)*10).toFixed(0));
+										if (parseInt(subreg.Lesson) > 0)
+											aibaks += parseInt(Number((parseInt(subreg.Lesson)/100)*10).toFixed(0));
+										
+										subreg.Aibucks = aibaks;
 
 										subregisters.push(subreg);
 									});
 
-									var result = await SubRegisters.bulkCreate(subregisters,{
+									await SubRegisters.bulkCreate(subregisters,{
 										fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status','isWatched','Aibucks']
 									});
 								}
@@ -3078,17 +3051,15 @@ router.post('/deleteextrateacher', async(req, res) => {
 			arr[2] = department;
 			arr[3] = registerList[0].Rate60;
 			arr[4] = registerList[0].Rate90;
-			arr[5] = Number(result.minutes/60).toFixed(2);
-			arr[6] = result.halflesson;
-			arr[7] = result.hour;
-			arr[8] = result.lesson;
-			arr[9] = result.fines;
-			arr[10] = changeList.length;
+			arr[5] = result.hour;
+			arr[6] = result.fines;
+			arr[7] = changeList.length;
 			salaryList.push(arr);
 			problems = problems.concat(result.problems);
 			
 		});
-		var header = ['TeacherId','ФИО тренера','Кафедра','Ставка за 60','Ставка за 90','Общее количество уроков по 60 минутной системе','Количество уроков по 45','Количество уроков по 60','Количество уроков по 90','Опоздания (минут)','Количество замен'];
+		var header = ['TeacherId','ФИО тренера','Кафедра','Ставка за 60','Ставка за 90','Количество уроков по 60','Опоздания (минут)','Количество замен'];
+		salaryList.sort((a,b) => a[1].localeCompare(b[1]));
 		salaryList.unshift(header);
 		var newWB = xlsx.utils.book_new();
 		var salary = xlsx.utils.aoa_to_sheet(salaryList);
