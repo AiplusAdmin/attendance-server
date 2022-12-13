@@ -75,7 +75,7 @@ app.use('/levels',levels);
 app.use('/telegram',telegram);
 //start bot
 //aiplusOnlineBot.bot.launch();
-bot.launch();
+//bot.launch();
 //start cron
 //cron.crontohh.start();
 cron.cronaddstudents.start();

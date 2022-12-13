@@ -832,6 +832,15 @@ function CalculateDays(registers) {
       };
   }
 
+  function getDatesInRange(startDate, endDate) {
+    const date = new Date(startDate.getTime());
+    const dates = [];
+    while (date <= endDate) {
+      dates.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+    return dates;
+}
 
 
 module.exports = {
@@ -848,5 +857,6 @@ module.exports = {
     getTimeInMinutes,
     compareTimes,
     compareReportDate,
-    CalculateDays
+    CalculateDays,
+    getDatesInRange
 }

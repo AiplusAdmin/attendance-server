@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../databases/index').sequelize;
 
-const Registers = sequelize.define('Registers',{	
+const BumRegisters = sequelize.define('BumRegisters',{	
 	Id:{
 		type: Sequelize.BIGINT,
 		allowNull: false,
@@ -83,4 +83,4 @@ const Registers = sequelize.define('Registers',{
 	}
 });
 
-module.exports = Registers;
+module.exports = BumRegisters;
