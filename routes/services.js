@@ -150,7 +150,7 @@ function sendTelegramIND(register,student){
 
 //Get Offices
 router.get('/offices',verifyToken, (req, res) => {
-    api.get(this.key.domain,'GetOffices','',this.key.apikey)
+    api.get(key.domain,'GetOffices','',key.apikey)
         .then((response) => {
 			res.json(response);
         })
@@ -584,6 +584,71 @@ router.post('/setpasses',verifyToken, (req, res) => {
     });
 });
 
+//time check
+router.post('/timecheck', async (req, res) => { 
+	var timeStartNew = req.body.beginTime;
+	var timeEndNew = req.body.endTime;
+	if(req.body.teacherId == undefined){
+		res.json({
+			status: 401,
+			data: []
+		});
+	} else {
+
+		var date = new Date().toISOString().substr(0, 10);
+		var timeStart = new Date("01/01/1970" + " " + timeStartNew);		
+		var timeEnd = new Date("01/01/1970" + " " + timeEndNew);
+		var params = 'types=Group&dateFrom='+date+'&dateTo='+date+'&statuses=Working&teacherId='+req.body.teacherId;
+    	var response = await api.get(key.domain,'GetEdUnits',params,key.apikey);
+        try{
+            if(response.status === 200){
+				var ok = true;
+				for(var i = 0; i < response.data.length; i++){
+					for(var j = 0; j < response.data[i].ScheduleItems.length; j++){
+						var begin = response.data[i].ScheduleItems[j].BeginTime;
+						var end =  response.data[i].ScheduleItems[j].EndTime;
+						var timeStartGroup = new Date("01/01/1970" + " " + begin);		
+						var timeEndGroup = new Date("01/01/1970" + " " + end);
+
+						if ((timeStartGroup < timeStart && timeStartGroup < timeEnd) && (timeEndGroup <= timeStart && timeEndGroup < timeEnd)){
+							continue
+						} else if(((timeStartGroup > timeStart && timeStartGroup >= timeEnd) && (timeEndGroup > timeStart && timeEndGroup > timeEnd))){
+							continue
+						}else{
+							ok = false;
+							break;	
+						}		
+					}
+					if(!ok) break;
+				}
+
+				if(!ok){
+					res.json({
+						status: 440,
+						message: 'В данное время у вас уже есть урок'
+					});
+				}else{
+					res.json({
+						status: 200,
+						message: 'OK'
+					});
+				}
+            } else {
+				res.json({
+					status: 410,
+					data: []
+				});
+			}
+        }catch(err){
+			console.log(err);
+            res.json({
+				status: 410,
+				data: []
+			});
+        }
+	}
+});
+
 //add attendence test
 router.post('/setattendence', async (req, res) => { 
 	try{
@@ -909,13 +974,13 @@ router.post('/setattendencet', async (req, res) => {
 		var Aibucks = req.body.Aibucks?req.body.Aibucks:null;
 		var TopicId = req.body.topic ? req.body.topic.Id: null;
 		var TopicPriority = req.body.topic ? req.body.topic.Priority : 0;
+		var TopicName =  req.body.topic ? req.body.topic.Name: "";
 		var homework = req.body.homework ? req.body.homework : null;
 		var block = req.body.Block;
 		var kolhar = req.body.kolhar;
 		var foskres = req.body.foskres;
 		var subject = req.body.group.subject;
 		var srezMaxDefault = req.body.srezMaxDefault ? parseInt(req.body.srezMaxDefault):0;
-		var HomeWorkComment = '';
 		var bumFlag = req.body.bumFlag;
 		var Paperdone = !bumFlag;
 		var newRegister;
@@ -980,6 +1045,10 @@ router.post('/setattendencet', async (req, res) => {
 					var comment = '';
 					if(student.comment){
 						comment = student.comment.join('\n');
+						student.comment.unshift(TopicName + '<br/>');
+					}else{
+						student.comment = [];
+						student.comment.push(TopicName + '<br/>');
 					}
 					student.maxsrez = srezMaxDefault;
 					
@@ -2019,7 +2088,7 @@ router.get('/getregister',verifyToken,async (req, res) => {
 		bumreg."SubmitDay", bumreg."SubmitTime",bumreg."Online",
 		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", bumreg."Fine",bumreg."Paperdone"
 		FROM public."BumRegisters" as bumreg
-		LEFT JOIN public."SubRegisters" as subregAll ON bumreg."Id" = subregAll."RegisterId"
+		LEFT JOIN public."BumSubRegisters" as subregAll ON bumreg."Id" = subregAll."RegisterId"
 		LEFT JOIN public."Schools" as sch ON bumreg."SchoolId" = sch."SchoolId"
 		WHERE bumreg."TeacherId" = :teacherId AND bumreg."LessonDate" BETWEEN :dateFrom AND :dateTo 
 		GROUP BY bumreg."Id",sch."Name";`;
@@ -2031,6 +2100,79 @@ router.get('/getregister',verifyToken,async (req, res) => {
 
 		
 		res.send({status: 200, data: registers});
+	}catch(error){
+		console.log(error);
+        res.send({status: 500,data: []});
+	}
+});
+
+router.post('/getregisterReport',verifyToken,async (req, res) => {
+	try{
+		var dateFrom = new Date(req.body.dateFrom);
+		var dateTo = new Date(req.body.dateTo);
+
+		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
+		reg."SubmitDay", reg."SubmitTime",reg."Online",
+		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine",reg."Paperdone",
+		'Registers' as "Source"
+		FROM public."Registers" as reg
+		LEFT JOIN public."SubRegisters" as subregAll ON reg."Id" = subregAll."RegisterId"
+		LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
+		WHERE reg."TeacherId" = :teacherId AND reg."LessonDate" BETWEEN :dateFrom AND :dateTo 
+		GROUP BY reg."Id",sch."Name"
+		UNION
+		SELECT bumreg."Id", bumreg."GroupName", bumreg."Time", bumreg."LessonDate", bumreg."WeekDays",
+		bumreg."SubmitDay", bumreg."SubmitTime",bumreg."Online",
+		SUM(CASE WHEN bumsubregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(bumsubregAll."Id") as "All", sch."Name", bumreg."Fine",bumreg."Paperdone",
+		'BumRegisters' as "Source"
+		FROM public."BumRegisters" as bumreg
+		LEFT JOIN public."BumSubRegisters" as bumsubregAll ON bumreg."Id" = bumsubregAll."RegisterId"
+		LEFT JOIN public."Schools" as sch ON bumreg."SchoolId" = sch."SchoolId"
+		WHERE bumreg."TeacherId" = :teacherId AND bumreg."LessonDate" BETWEEN :dateFrom AND :dateTo 
+		GROUP BY bumreg."Id",sch."Name";`;
+
+		var registers = await sequelize.query(query,{
+			replacements:{dateFrom: dateFrom,dateTo: dateTo, pass:true, teacherId:req.body.teacherId},
+			type: QueryTypes.SELECT
+		});
+
+		dates = support.getDatesInRange(dateFrom,dateTo);
+
+		for (i in dates) {
+			TempTime = dates[i].toISOString().split("T");
+			dates[i] = TempTime[0];
+		}
+
+		var reports = new Array();
+		for (date of dates){
+			var obj = new Object();
+			var countOnline = 0;
+			var countPaper = 0;
+			flag = false;
+			registers.map(function(register){
+				if (date == register.LessonDate){
+					flag = true;
+					tempRegDate = register.LessonDate;
+
+					if(register.Source == 'Registers' || register.Source == 'DopRegisters'){
+						countOnline++;
+					}else if(register.Source == 'BumRegisters'){
+						countPaper++;
+					}
+				}
+			});
+			if(flag){
+				obj.LessonDate = tempRegDate;
+				obj.OnlineLessons = countOnline;
+				obj.PaperLessons = countPaper;
+				reports.push(obj);
+			}
+		}	
+
+		reports.sort(support.compareReportDate);
+
+		res.send({status: 200, dataRep: reports, dataReg: registers});
+
 	}catch(error){
 		console.log(error);
         res.send({status: 500,data: []});
@@ -2153,6 +2295,34 @@ router.get('/getbumregisterdetails',verifyToken,async (req, res) => {
 		(SELECT "ClientId" as clint,round(AVG("Homework"),2) as AvgHomework,round(AVG("Test"),2) as AvgTest,round(AVG("Lesson"),2) as AvgLesson
 		FROM "SubRegisters",
 		(SELECT "Id" FROM "BumRegisters" WHERE "LessonDate" BETWEEN :dateFrom AND :dateTo) as subquery
+		WHERE "RegisterId" = subquery."Id" AND "Pass"=true GROUP BY "ClientId") as query
+		ON subregisters."ClientId" = query."clint" WHERE subregisters."RegisterId" = :registerId`;
+		var subregisters = await sequelize.query(query,{
+			replacements:{dateFrom: dateFrom,dateTo: dateTo, registerId: registerId},
+			type: QueryTypes.SELECT
+		});
+
+		res.send({status: 200, data: subregisters});
+	}catch(error){
+		console.log(error);
+        res.send({status: 500,data: []});
+	}
+});
+
+router.get('/getdopregisterdetails',verifyToken,async (req, res) => {
+	try{
+		var dateFrom = new Date('2020-09-02');
+		var dateTo = new Date('2020-09-09');
+		var registerId = req.query.registerId;
+		var query = `SELECT "ClientId","FullName","Pass",
+		concat(subregisters."Task",' / ',query."avghomework") as Task,
+		concat(subregisters."TaskMax",' / ',query."avgtest") as TaskMax,
+		concat(subregisters."Complition",' / ',query."avglesson") as Complition,
+		"Comment"
+		FROM "DopSubRegisters" as subregisters LEFT JOIN 
+		(SELECT "ClientId" as clint,round(AVG("Task"),2) as AvgHomework,round(AVG("TaskMax"),2) as AvgTest,round(AVG("Complition"),2) as AvgLesson
+		FROM "DopSubRegisters",
+		(SELECT "Id" FROM "DopRegisters" WHERE "LessonDate" BETWEEN :dateFrom AND :dateTo) as subquery
 		WHERE "RegisterId" = subquery."Id" AND "Pass"=true GROUP BY "ClientId") as query
 		ON subregisters."ClientId" = query."clint" WHERE subregisters."RegisterId" = :registerId`;
 		var subregisters = await sequelize.query(query,{
@@ -2735,16 +2905,14 @@ router.post('/telegramtohh2', async(req,res) => {
 							found = true;
 							group = response.data[0];
 						}else{
-							var body = new Array();
-							paramOffice = 'Id='+register.SchoolId;
+							var paramOffice = 'Id='+register.SchoolId;
 							var resOffice = await api.get(key.domain,'GetOffices',paramOffice,key.apikey)
 							var st = new Object()
 							st.schoolName = resOffice.data[0]['Name']
 							st.teacherId = register.TeacherId;
-							st.date = date;
+							st.date = date.toISOString().substring(0,10);
 							st.groupName = register.GroupName;
 							st.time = register.Time
-							body.push(st);
 							sendTelegramGROUP(st)
 						}
 					}
