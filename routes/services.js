@@ -985,6 +985,7 @@ router.post('/setattendencet', async (req, res) => {
 		var Paperdone = !bumFlag;
 		var newRegister;
 
+
 		if(bumFlag){
 			newRegister = await BumRegisters.create({
 				Change,
@@ -1043,29 +1044,30 @@ router.post('/setattendencet', async (req, res) => {
 					var kolobj = {};
 					var voksresobj = {};
 					var comment = '';
-					if(student.comment){
-						comment = student.comment.join('\n');
-						student.comment.unshift(TopicName + '<br/>');
-					}else{
-						student.comment = [];
-						student.comment.push(TopicName + '<br/>');
+					if(student.attendence){
+						if(student.comment){
+							comment = student.comment.join('\n');
+							student.comment.unshift(TopicName + '<br/>');
+						}else{
+							student.comment = [];
+							student.comment.push(TopicName + '<br/>');
+						}
+						student.maxsrez = srezMaxDefault;
+						
+						obj.RegisterId = newRegister.Id;
+						obj.ClientId = student.clientid;
+						obj.FullName = student.name;
+						obj.Pass = student.attendence;
+						obj.Homework = student.homework;
+						obj.Test = student.test;
+						obj.Lesson = student.attendence?student.lesson:0;
+						obj.Comment = comment;
+						obj.Status = student.status;
+						obj.isWatched = student.iswatched ? student.iswatched:false;
+						obj.Aibucks = student.aibaks ? student.aibaks : 0;
+						obj.SubjectN = TopicPriority;
+						obj.TestMax = srezMaxDefault;
 					}
-					student.maxsrez = srezMaxDefault;
-					
-					obj.RegisterId = newRegister.Id;
-					obj.ClientId = student.clientid;
-					obj.FullName = student.name;
-					obj.Pass = student.attendence;
-					obj.Homework = student.homework;
-					obj.Test = student.test;
-					obj.Lesson = student.attendence?student.lesson:0;
-					obj.Comment = comment;
-					obj.Status = student.status;
-					obj.isWatched = student.iswatched ? student.iswatched:false;
-					obj.Aibucks = student.aibaks ? student.aibaks : 0;
-					obj.SubjectN = TopicPriority;
-					obj.TestMax = srezMaxDefault;
-	
 					if(kolhar && student.attendence){
 						kolobj.ClientId = student.clientid;
 						kolobj.Score = student.kolhar;
@@ -1075,7 +1077,7 @@ router.post('/setattendencet', async (req, res) => {
 						kolhartest.push(kolobj);
 					}
 
-					if(foskres && student.attendence){
+					if(foskres){
 						voksresobj.ClientId = student.clientid;
 						voksresobj.Score = student.foskres;
 						voksresobj.Block = block;
@@ -1085,8 +1087,9 @@ router.post('/setattendencet', async (req, res) => {
 
 						voksrestests.push(voksresobj);
 					}
-
-					subregisters.push(obj);
+					if(student.attendence){
+						subregisters.push(obj);
+					}
 				}
 			});
 			if(kolhar){
@@ -1094,7 +1097,6 @@ router.post('/setattendencet', async (req, res) => {
 					fields: ['ClientId','LessonDay','SubmitDay','Score']
 				});
 			}
-			
 			if(foskres){
 				VoksresTests.bulkCreate(voksrestests,{
 					fields: ['ClientId','Subject','LessonDay','SubmitDay','Score']
