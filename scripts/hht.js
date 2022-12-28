@@ -102,7 +102,7 @@ async function setGroupResult(date,groupId,students,register,topic){
 			return new Promise(async function(resolve,reject){
 				try{
 					await sleep(10);
-					if(student.clientid != -1 && !student.status && !student.delete){
+					if(student.clientid != -1 && !student.status && !student.delete ){
 						student.topic = topic;
 						var comment = '';
 						var data = new Object();

@@ -1044,30 +1044,32 @@ router.post('/setattendencet', async (req, res) => {
 					var kolobj = {};
 					var voksresobj = {};
 					var comment = '';
-					if(student.attendence){
-						if(student.comment){
-							comment = student.comment.join('\n');
-							student.comment.unshift(TopicName + '<br/>');
-						}else{
-							student.comment = [];
-							student.comment.push(TopicName + '<br/>');
-						}
-						student.maxsrez = srezMaxDefault;
-						
-						obj.RegisterId = newRegister.Id;
-						obj.ClientId = student.clientid;
-						obj.FullName = student.name;
-						obj.Pass = student.attendence;
-						obj.Homework = student.homework;
-						obj.Test = student.test;
-						obj.Lesson = student.attendence?student.lesson:0;
-						obj.Comment = comment;
-						obj.Status = student.status;
-						obj.isWatched = student.iswatched ? student.iswatched:false;
-						obj.Aibucks = student.aibaks ? student.aibaks : 0;
-						obj.SubjectN = TopicPriority;
-						obj.TestMax = srezMaxDefault;
+	
+					if(student.comment){
+						comment = student.comment.join('\n');
+						student.comment.unshift(TopicName + '<br/>');
+					}else{
+						student.comment = [];
+						student.comment.push(TopicName + '<br/>');
 					}
+					student.maxsrez = srezMaxDefault;
+						
+					obj.RegisterId = newRegister.Id;
+					obj.ClientId = student.clientid;
+					obj.FullName = student.name;
+					obj.Pass = student.attendence;
+					obj.Homework = student.homework;
+					obj.Test = student.test;
+					obj.Lesson = student.attendence?student.lesson:0;
+					obj.Comment = comment;
+					obj.Status = student.status;
+					obj.isWatched = student.iswatched ? student.iswatched:false;
+					obj.Aibucks = student.aibaks ? student.aibaks : 0;
+					obj.SubjectN = TopicPriority;
+					obj.TestMax = srezMaxDefault;
+					
+					subregisters.push(obj);
+					
 					if(kolhar && student.attendence){
 						kolobj.ClientId = student.clientid;
 						kolobj.Score = student.kolhar;
@@ -1086,9 +1088,6 @@ router.post('/setattendencet', async (req, res) => {
 						voksresobj.SubmitDay = SubmitDay;
 
 						voksrestests.push(voksresobj);
-					}
-					if(student.attendence){
-						subregisters.push(obj);
 					}
 				}
 			});
