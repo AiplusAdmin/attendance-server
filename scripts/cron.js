@@ -283,7 +283,7 @@ var cronaddstudents = cron.schedule('37 13 * * *',async () => {
 		});
 	},Promise.resolve(true));
 
-	var params = "take=7000&statuses="+encodeURIComponent('Занимается,Заморозка,Регистрация');
+	var params = "take=7000&statuses="+encodeURIComponent('Занимается,Заморозка,Регистрация,Пакет Старт');
 	api.get(key.domain,'GetStudents',params,key.apikey)
 	.then((data) => {
 		data.data.map(async function(record){
