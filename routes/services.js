@@ -3655,7 +3655,25 @@ router.post('/deleteextrateacher', async(req, res) => {
 		LEFT JOIN public."Rooms" as rom ON rom."Id" = reg."RoomId"
 		LEFT JOIN public."Topics" as top ON top."Id" = reg."TopicId"
 		WHERE reg."LessonDate" BETWEEN :dateFrom AND :dateTo
-		GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room",subteach."LastName",subteach."FirstName",top."Name",teach."Rate60",teach."Rate90";`;
+		GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room",subteach."LastName",subteach."FirstName",top."Name",teach."Rate60",teach."Rate90"
+		UNION 
+		SELECT bumreg."Id", bumreg."GroupName", bumreg."Time", bumreg."LessonDate", bumreg."WeekDays",
+		bumreg."SubmitDay", bumreg."SubmitTime",bumreg."LevelTest",rom."Room",bumreg."Aibucks",bumreg."Online",bumreg."Paperdone",top."Name" as "Topic",
+		CASE 
+			WHEN bumreg."GroupName" like '%RO%' THEN 'RO'
+			WHEN bumreg."GroupName" like '%KO%' THEN 'KO'
+		END AS "Branch",bumreg."TeacherId", concat(teach."LastName",' ',teach."FirstName") as "FullName", concat(subteach."LastName",' ',subteach."FirstName") as "SubFullName",
+		SUM(CASE WHEN bumsubregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(bumsubregAll."Id") as "All", sch."Name", bumreg."Fine",teach."Rate60",teach."Rate90",
+		'BumRegisters' as "Source"
+		FROM public."BumRegisters" as bumreg
+		LEFT JOIN public."Teachers" as teach ON bumreg."TeacherId" = teach."TeacherId"
+		LEFT JOIN public."Teachers" as subteach ON bumreg."SubTeacherId" = subteach."TeacherId"
+		LEFT JOIN public."BumSubRegisters" as bumsubregAll ON bumreg."Id" = bumsubregAll."RegisterId"
+		LEFT JOIN public."Schools" as sch ON bumreg."SchoolId" = sch."SchoolId"
+		LEFT JOIN public."Rooms" as rom ON rom."Id" = bumreg."RoomId"
+		LEFT JOIN public."Topics" as top ON top."Id" = bumreg."TopicId"
+		WHERE bumreg."LessonDate" BETWEEN :dateFrom AND :dateTo
+		GROUP BY bumreg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room",subteach."LastName",subteach."FirstName",top."Name",teach."Rate60",teach."Rate90";`;
 		
 		var registers = await sequelize.query(query,{
 			replacements:{dateFrom: dateFrom,dateTo: dateTo, pass:true},
