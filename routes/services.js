@@ -3641,7 +3641,7 @@ router.post('/deleteextrateacher', async(req, res) => {
 		var dateTo = new Date(req.body.dateTo);
 		
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
-		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",reg."Online",top."Name" as "Topic",
+		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",reg."Online",reg."Paperdone",top."Name" as "Topic",
 		CASE 
 			WHEN reg."GroupName" like '%RO%' THEN 'RO'
 			WHEN reg."GroupName" like '%KO%' THEN 'KO'
