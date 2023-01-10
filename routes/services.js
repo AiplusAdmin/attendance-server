@@ -3646,7 +3646,8 @@ router.post('/deleteextrateacher', async(req, res) => {
 			WHEN reg."GroupName" like '%RO%' THEN 'RO'
 			WHEN reg."GroupName" like '%KO%' THEN 'KO'
 		END AS "Branch", reg."TeacherId", concat(teach."LastName",' ',teach."FirstName") as "FullName", concat(subteach."LastName",' ',subteach."FirstName") as "SubFullName",
-		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine",teach."Rate60",teach."Rate90"
+		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name", reg."Fine",teach."Rate60",teach."Rate90",
+		'Registers' as "Source"
 		FROM public."Registers" as reg
 		LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
 		LEFT JOIN public."Teachers" as subteach ON reg."SubTeacherId" = subteach."TeacherId"
